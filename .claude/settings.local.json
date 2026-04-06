@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Program Files/**)",
+      "Read(//c/Users/tnorr/AppData/Local/Programs//**)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/nodejs\")"
+    ]
+  }
+}
