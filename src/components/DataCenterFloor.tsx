@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { useSimulationStore } from '../logic/store';
 import { CoolingType, calculateRackPUE } from '../logic/thermoCalc';
 import { Tooltip } from './Tooltip';
+import { ExteriorView } from './ExteriorView';
 import constants from '../data/constants.json';
 
 const COOLING_COLOR: Record<CoolingType, string> = {
@@ -93,15 +94,25 @@ function RackTile({ rack }: { rack: { id: string; loadMW: number; coolingType: C
 export function DataCenterFloor() {
   const { racks } = useSimulationStore();
   const { setNodeRef, isOver } = useDroppable({ id: 'datacenter-floor' });
+  const [view, setView] = useState<'interior' | 'exterior'>('interior');
 
   return (
     <main ref={setNodeRef} className={`floor ${isOver ? 'floor--over' : ''}`}>
       <h2 className="floor-title">
         Data Center Floor
         <span className="floor-count">{racks.length} rack{racks.length !== 1 ? 's' : ''} deployed</span>
+        <button
+          className={`view-toggle ${view === 'exterior' ? 'view-toggle--active' : ''}`}
+          onClick={() => setView(v => v === 'interior' ? 'exterior' : 'interior')}
+          title={view === 'interior' ? 'Switch to Exterior View' : 'Switch to Interior View'}
+        >
+          {view === 'interior' ? '🏢 Exterior View' : '⚙️ Interior View'}
+        </button>
       </h2>
 
-      {racks.length === 0 ? (
+      {view === 'exterior' ? (
+        <ExteriorView />
+      ) : racks.length === 0 ? (
         <div className="floor-empty">
           <p>Drop a cooling module here to deploy a rack.</p>
           <p className="floor-empty-sub">Each rack represents an NVIDIA GB200 NVL72 (120 kW).</p>
