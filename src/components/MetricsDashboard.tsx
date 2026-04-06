@@ -24,7 +24,7 @@ function D3Gauge({ value, min, max, label, unit, colorScale }: GaugeProps) {
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    const W = 180, H = 110, R = 75, cx = W / 2, cy = H - 10;
+    const W = 180, H = 130, R = 75, cx = W / 2, cy = H - 30;
 
     const arc = d3.arc<void>()
       .innerRadius(R - 18).outerRadius(R)
@@ -45,15 +45,15 @@ function D3Gauge({ value, min, max, label, unit, colorScale }: GaugeProps) {
       .attr('fill', '#f0f0f0').attr('font-size', '18px').attr('font-weight', 'bold')
       .text(value.toFixed(2));
 
-    svg.append('text').attr('x', cx).attr('y', cy + 10).attr('text-anchor', 'middle')
+    svg.append('text').attr('x', cx).attr('y', cy + 14).attr('text-anchor', 'middle')
       .attr('fill', '#aaa').attr('font-size', '11px').text(unit);
 
-    svg.append('text').attr('x', cx).attr('y', H - 2).attr('text-anchor', 'middle')
+    svg.append('text').attr('x', cx).attr('y', H - 4).attr('text-anchor', 'middle')
       .attr('fill', '#ccc').attr('font-size', '12px').text(label);
 
   }, [value, min, max, label, unit, colorScale]);
 
-  return <svg ref={svgRef} width={180} height={110} />;
+  return <svg ref={svgRef} width={180} height={130} />;
 }
 
 // ── D3 Heatmap ────────────────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ function D3Heatmap() {
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    const W = 340, H = 200, cols = 10, cellSize = 28, gap = 4;
+    const W = 316, H = 200, cols = 10, cellSize = 28, gap = 4; // W = cols*(cellSize+gap)-gap
     const colorScale = d3.scaleSequential(d3.interpolateRdYlGn).domain([1.6, 1.05]);
     const totalCells = Math.max(10, racks.length);
 
@@ -89,7 +89,7 @@ function D3Heatmap() {
     }
 
     // Legend
-    const legendW = 120, legendX = W - legendW - 10, legendY = H - 24;
+    const legendW = 120, legendX = W - legendW, legendY = H - 24;
     const grad = svg.append('defs').append('linearGradient').attr('id', 'pue-grad');
     grad.append('stop').attr('offset', '0%').attr('stop-color', d3.interpolateRdYlGn(0));
     grad.append('stop').attr('offset', '100%').attr('stop-color', d3.interpolateRdYlGn(1));
@@ -98,7 +98,7 @@ function D3Heatmap() {
     svg.append('text').attr('x', legendX + legendW).attr('y', legendY - 3).attr('fill', '#aaa').attr('font-size', '9px').attr('text-anchor', 'end').text('◀ 1.05');
   }, [racks, outsideTempC, useFahrenheit]);
 
-  return <svg ref={svgRef} width={340} height={200} style={{ overflow: 'visible' }} />;
+  return <svg ref={svgRef} width={316} height={200} />;
 }
 
 // ── Main Dashboard ────────────────────────────────────────────────────────────
@@ -240,6 +240,41 @@ export function MetricsDashboard() {
           <div className="stat-card">
             <span className="stat-val">{racks.length}</span>
             <span className="stat-unit">Racks Online</span>
+          </div>
+        </Tooltip>
+
+        <Tooltip position="top" content={
+          <div className="tooltip-content">
+            <div className="tooltip-title">Daily Water Consumption</div>
+            <p className="tooltip-desc">
+              Estimated water consumed per day across the facility. Calculated as IT load (kW) × WUE (L/kWh) × 24 hours per cooling type.
+            </p>
+            <table className="tooltip-table">
+              <tbody>
+                <tr><td>CRAC</td><td>0.20 L/kWh (ASHRAE TC 9.9)</td></tr>
+                <tr><td>Hot-Aisle</td><td>0.40 L/kWh (Uptime Institute 2023)</td></tr>
+                <tr><td>Liquid</td><td>0.90 L/kWh (Green Grid / LBNL 2023)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        }>
+          <div className="stat-card">
+            <span className="stat-val">{metrics.totalWaterLitersPerDay.toFixed(0)}</span>
+            <span className="stat-unit">L/day Water</span>
+          </div>
+        </Tooltip>
+
+        <Tooltip position="top" content={
+          <div className="tooltip-content">
+            <div className="tooltip-title">System WUE</div>
+            <p className="tooltip-desc">
+              Water Usage Effectiveness — total liters consumed per kWh of IT load (Green Grid standard). Lower is better. World-class facilities target WUE ≤ 0.5 L/kWh. Liquid-cooled systems are higher due to makeup water in evaporative heat rejection loops.
+            </p>
+          </div>
+        }>
+          <div className="stat-card">
+            <span className="stat-val">{metrics.systemWUE.toFixed(2)}</span>
+            <span className="stat-unit">L/kWh WUE</span>
           </div>
         </Tooltip>
       </div>
