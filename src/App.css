@@ -685,6 +685,86 @@ body {
   margin-bottom: 4px;
 }
 
+/* ── View Toggle Button ──────────────────────────────────────────────────────── */
+.view-toggle {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 5px;
+  background: #1c1c30;
+  border: 1px solid #2a2a4a;
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: auto;
+}
+.view-toggle--active {
+  border-color: #7ec8e3;
+  color: #7ec8e3;
+  background: #1a2a3a;
+}
+.view-toggle:hover {
+  border-color: #7ec8e3;
+  color: #7ec8e3;
+}
+
+/* ── Exterior View ───────────────────────────────────────────────────────────── */
+.exterior-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  min-height: 0;
+}
+.exterior-svg {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Heat Plume Animation ────────────────────────────────────────────────────── */
+@keyframes plume-rise {
+  0%   { transform: translateY(0)    scaleX(1);   opacity: var(--plume-opacity, 0.6); }
+  50%  { transform: translateY(-20px) scaleX(1.1); opacity: calc(var(--plume-opacity, 0.6) * 0.7); }
+  100% { transform: translateY(-40px) scaleX(0.9); opacity: 0; }
+}
+.plume {
+  animation: plume-rise 2.5s ease-out infinite;
+  transform-origin: bottom center;
+}
+.plume:nth-child(2) { animation-delay: 0.8s; }
+.plume:nth-child(3) { animation-delay: 1.6s; }
+
+/* ── Pipe Flow Animation ─────────────────────────────────────────────────────── */
+@keyframes pipe-flow {
+  from { stroke-dashoffset: 40; }
+  to   { stroke-dashoffset: 0; }
+}
+.pipe-arrows {
+  animation: pipe-flow 0.8s linear infinite;
+}
+
+/* ── Citation Box ────────────────────────────────────────────────────────────── */
+.exterior-citation {
+  font-size: 0.65rem;
+  color: #555;
+  padding: 6px 12px;
+  border-top: 1px solid #2a2a4a;
+  background: #0f0f1a;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+.exterior-citation strong {
+  color: #777;
+}
+
+/* ── Heat Island Ring Labels ─────────────────────────────────────────────────── */
+.ring-label {
+  font-size: 10px;
+  fill: #f59e0b;
+  font-family: 'Segoe UI', sans-serif;
+}
+
 .home-footer {
   text-align: center;
   padding: 32px 24px 48px;
