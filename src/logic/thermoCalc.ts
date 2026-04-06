@@ -76,3 +76,40 @@ export const calculateFacilityMetrics = (racks: Rack[], outsideTempC: number) =>
     heatRejectedMW
   };
 };
+
+/**
+ * Water Usage Effectiveness (WUE) per cooling type — liters consumed per kWh of IT load.
+ * Sources:
+ *   CRAC 0.20 L/kWh      — ASHRAE TC 9.9; Green Grid WUE Guidelines (air-cooled, primarily humidification)
+ *   HOT_AISLE 0.40 L/kWh — Uptime Institute WUE Benchmarks 2023 (supplemental evaporative cooling)
+ *   LIQUID 0.90 L/kWh    — Green Grid WUE Report 2022; LBNL 2023 (closed-loop DLC + evaporative reject makeup)
+ */
+const WUE_L_PER_KWH: Record<CoolingType, number> = {
+  CRAC: 0.20,
+  HOT_AISLE: 0.40,
+  LIQUID: 0.90,
+};
+
+/**
+ * Calculates water consumption metrics for the facility.
+ * waterLitersPerHour per rack = rack.loadMW × 1000 (kW) × wueL_per_kWh
+ * totalWaterLitersPerDay = Σ(waterLitersPerHour) × 24
+ * systemWUE = totalWaterLitersPerDay / (totalITLoadKWh over 24h)
+ */
+export const calculateWaterMetrics = (racks: Rack[]) => {
+  let totalWaterLitersPerHour = 0;
+  let totalITLoadMW = 0;
+
+  racks.forEach((rack) => {
+    totalWaterLitersPerHour += rack.loadMW * 1000 * WUE_L_PER_KWH[rack.coolingType];
+    totalITLoadMW += rack.loadMW;
+  });
+
+  const totalWaterLitersPerDay = totalWaterLitersPerHour * 24;
+  const itLoadKWh24 = totalITLoadMW * 1000 * 24;
+
+  return {
+    totalWaterLitersPerDay,
+    systemWUE: itLoadKWh24 > 0 ? totalWaterLitersPerDay / itLoadKWh24 : 0,
+  };
+};

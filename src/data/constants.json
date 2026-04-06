@@ -30,6 +30,8 @@
       "tempSensitivity": "HIGH",
       "pueClass": "High",
       "liquidRequired": false,
+      "wueL_per_kWh": 0.20,
+      "wueSource": "ASHRAE TC 9.9; Green Grid WUE Guidelines",
       "source": "Uptime Institute Annual Data Center Survey; ASHRAE TC 9.9"
     },
     "HOT_AISLE": {
@@ -41,6 +43,8 @@
       "tempSensitivity": "MEDIUM",
       "pueClass": "Medium",
       "liquidRequired": false,
+      "wueL_per_kWh": 0.40,
+      "wueSource": "Uptime Institute WUE Benchmarks 2023",
       "source": "Uptime Institute Annual Data Center Survey; ASHRAE TC 9.9"
     },
     "LIQUID": {
@@ -52,6 +56,8 @@
       "tempSensitivity": "LOW",
       "pueClass": "Low",
       "liquidRequired": true,
+      "wueL_per_kWh": 0.90,
+      "wueSource": "Green Grid WUE Report 2022; Lawrence Berkeley National Laboratory 2023",
       "source": "NVIDIA GB200 NVL72 Specs; Standard Direct Liquid Cooling (DLC) thermal modeling"
     }
   },

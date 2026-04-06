@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Rack, CoolingType, calculateFacilityMetrics } from './thermoCalc';
+import { Rack, CoolingType, calculateFacilityMetrics, calculateWaterMetrics } from './thermoCalc';
 import constants from '../data/constants.json';
 
 interface FacilityMetrics {
@@ -7,6 +7,8 @@ interface FacilityMetrics {
   systemPUE: number;
   totalFacilityPowerMW: number;
   heatRejectedMW: number;
+  totalWaterLitersPerDay: number;
+  systemWUE: number;
 }
 
 interface SimulationStore {
@@ -24,12 +26,18 @@ interface SimulationStore {
   updateRackCooling: (id: string, coolingType: CoolingType) => void;
   setOutsideTemp: (tempC: number) => void;
   toggleTempUnit: () => void;
+  loadPreset: (racks: Rack[]) => void;
 }
+
+const ZERO_METRICS: FacilityMetrics = {
+  totalITLoadMW: 0, systemPUE: 0, totalFacilityPowerMW: 0,
+  heatRejectedMW: 0, totalWaterLitersPerDay: 0, systemWUE: 0,
+};
 
 const computeMetrics = (racks: Rack[], outsideTempC: number): FacilityMetrics =>
   racks.length > 0
-    ? calculateFacilityMetrics(racks, outsideTempC)
-    : { totalITLoadMW: 0, systemPUE: 0, totalFacilityPowerMW: 0, heatRejectedMW: 0 };
+    ? { ...calculateFacilityMetrics(racks, outsideTempC), ...calculateWaterMetrics(racks) }
+    : ZERO_METRICS;
 
 let rackCounter = 0;
 
@@ -37,7 +45,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   racks: [],
   outsideTempC: constants.simulation.defaultOutsideTempC,
   useFahrenheit: false,
-  metrics: { totalITLoadMW: 0, systemPUE: 0, totalFacilityPowerMW: 0, heatRejectedMW: 0 },
+  metrics: ZERO_METRICS,
 
   addRack: (coolingType) => {
     const newRack: Rack = {
@@ -65,5 +73,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
   toggleTempUnit: () => {
     set({ useFahrenheit: !get().useFahrenheit });
+  },
+
+  loadPreset: (newRacks) => {
+    rackCounter = newRacks.length;
+    set({ racks: newRacks, metrics: computeMetrics(newRacks, get().outsideTempC) });
   },
 }));

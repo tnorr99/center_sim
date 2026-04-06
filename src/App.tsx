@@ -3,6 +3,7 @@ import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '
 import { CoolingPalette } from './components/CoolingPalette';
 import { DataCenterFloor } from './components/DataCenterFloor';
 import { MetricsDashboard } from './components/MetricsDashboard';
+import { PresetBar } from './components/PresetBar';
 import { HomePage } from './components/HomePage';
 import { useSimulationStore } from './logic/store';
 import { CoolingType } from './logic/thermoCalc';
@@ -42,6 +43,8 @@ export default function App() {
             </button>
           </div>
         </header>
+
+        <PresetBar />
 
         <div className="app-body">
           <CoolingPalette />

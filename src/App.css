@@ -59,6 +59,45 @@ body {
   border-color: #7ec8e3;
 }
 
+/* ── Preset Bar ─────────────────────────────────────────────────────────────── */
+.preset-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 24px;
+  background: #16162a;
+  border-bottom: 1px solid #2a2a4a;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.preset-bar-label {
+  font-size: 0.72rem;
+  color: #666;
+  white-space: nowrap;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.preset-btn {
+  background: #1c1c30;
+  border: 1px solid #2a2a4a;
+  color: #ccc;
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.preset-btn:hover {
+  background: #2a2a4a;
+  border-color: #7ec8e3;
+  color: #7ec8e3;
+}
+
 .app-body {
   display: grid;
   grid-template-columns: 220px 1fr 380px;
@@ -301,6 +340,7 @@ body {
 /* ── Stats Row ──────────────────────────────────────────────────────────────── */
 .stats-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
 }
@@ -355,16 +395,10 @@ body {
   display: inline-block;
 }
 
-/* ── Tooltip ────────────────────────────────────────────────────────────────── */
-.tooltip-wrap {
-  position: relative;
-  display: inline-block;
-}
-
-.tooltip-popup {
-  display: none;
-  position: absolute;
-  z-index: 999;
+/* ── Tooltip Portal ─────────────────────────────────────────────────────────── */
+.tooltip-portal {
+  position: fixed;
+  z-index: 9999;
   width: 280px;
   background: #1a1a30;
   border: 1px solid #3a3a5a;
@@ -376,16 +410,6 @@ body {
   line-height: 1.5;
   color: #ddd;
 }
-
-.tooltip-wrap:hover .tooltip-popup {
-  display: block;
-}
-
-/* Positioning variants */
-.tooltip-right .tooltip-popup  { left: calc(100% + 10px); top: 0; }
-.tooltip-left  .tooltip-popup  { right: calc(100% + 10px); top: 0; }
-.tooltip-top   .tooltip-popup  { bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
-.tooltip-bottom .tooltip-popup { top: calc(100% + 8px);   left: 50%; transform: translateX(-50%); }
 
 .tooltip-title {
   font-weight: 700;
