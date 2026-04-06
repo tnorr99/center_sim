@@ -13,6 +13,7 @@ interface SimulationStore {
   // State
   racks: Rack[];
   outsideTempC: number;
+  useFahrenheit: boolean;
 
   // Derived (recalculated on every change)
   metrics: FacilityMetrics;
@@ -22,6 +23,7 @@ interface SimulationStore {
   removeRack: (id: string) => void;
   updateRackCooling: (id: string, coolingType: CoolingType) => void;
   setOutsideTemp: (tempC: number) => void;
+  toggleTempUnit: () => void;
 }
 
 const computeMetrics = (racks: Rack[], outsideTempC: number): FacilityMetrics =>
@@ -34,6 +36,7 @@ let rackCounter = 0;
 export const useSimulationStore = create<SimulationStore>((set, get) => ({
   racks: [],
   outsideTempC: constants.simulation.defaultOutsideTempC,
+  useFahrenheit: false,
   metrics: { totalITLoadMW: 0, systemPUE: 0, totalFacilityPowerMW: 0, heatRejectedMW: 0 },
 
   addRack: (coolingType) => {
@@ -58,5 +61,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
   setOutsideTemp: (tempC) => {
     set({ outsideTempC: tempC, metrics: computeMetrics(get().racks, tempC) });
+  },
+
+  toggleTempUnit: () => {
+    set({ useFahrenheit: !get().useFahrenheit });
   },
 }));
