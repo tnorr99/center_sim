@@ -1,0 +1,71 @@
+{
+  "facility": {
+    "name": "Loudoun County Hyperscale Campus",
+    "location": "McLean / Ashburn, VA",
+    "capacityMW": 100,
+    "description": "Baseline modeled on Loudoun County (\"Data Center Alley\") power density standards."
+  },
+  "climate": {
+    "location": "McLean, VA (NOAA Proxy for Ashburn)",
+    "summerPeakC": 30.5,
+    "winterTroughC": -2.2,
+    "annualAverageC": 14.0,
+    "source": "NOAA Historical Climatology Data"
+  },
+  "hardware": {
+    "rackModel": "NVIDIA GB200 NVL72",
+    "rackPowerKW": 120,
+    "rackHeatOutputKW": 120,
+    "rackPowerMW": 0.12,
+    "coolingRequirement": "Direct-to-chip liquid cooling mandatory",
+    "source": "NVIDIA Blackwell Architecture & GB200 NVL72 Technical Specifications (2024/2025)"
+  },
+  "coolingTech": {
+    "CRAC": {
+      "label": "Standard CRAC",
+      "description": "Computer Room Air Conditioning. Traditional perimeter cooling. Highly sensitive to ambient temperature.",
+      "baselinePUE": 1.45,
+      "idealTempC": 15,
+      "penaltyPerDegreeK": 0.015,
+      "tempSensitivity": "HIGH",
+      "pueClass": "High",
+      "liquidRequired": false,
+      "wueL_per_kWh": 0.20,
+      "wueSource": "ASHRAE TC 9.9; Green Grid WUE Guidelines",
+      "source": "Uptime Institute Annual Data Center Survey; ASHRAE TC 9.9"
+    },
+    "HOT_AISLE": {
+      "label": "Hot-Aisle Containment",
+      "description": "Segregates hot exhaust from cold supply air. Improved airflow management raises efficiency threshold.",
+      "baselinePUE": 1.25,
+      "idealTempC": 22,
+      "penaltyPerDegreeK": 0.010,
+      "tempSensitivity": "MEDIUM",
+      "pueClass": "Medium",
+      "liquidRequired": false,
+      "wueL_per_kWh": 0.40,
+      "wueSource": "Uptime Institute WUE Benchmarks 2023",
+      "source": "Uptime Institute Annual Data Center Survey; ASHRAE TC 9.9"
+    },
+    "LIQUID": {
+      "label": "Direct-to-Chip Liquid Cooling",
+      "description": "Water/coolant routed directly to chip heatsinks. Superior heat capacity makes it highly resilient to summer peaks.",
+      "baselinePUE": 1.05,
+      "idealTempC": 30,
+      "penaltyPerDegreeK": 0.002,
+      "tempSensitivity": "LOW",
+      "pueClass": "Low",
+      "liquidRequired": true,
+      "wueL_per_kWh": 0.90,
+      "wueSource": "Green Grid WUE Report 2022; Lawrence Berkeley National Laboratory 2023",
+      "source": "NVIDIA GB200 NVL72 Specs; Standard Direct Liquid Cooling (DLC) thermal modeling"
+    }
+  },
+  "simulation": {
+    "defaultOutsideTempC": 14.0,
+    "defaultRackLoadMW": 0.12,
+    "maxRacks": 50,
+    "pueGoodThreshold": 1.2,
+    "pueWarningThreshold": 1.4
+  }
+}
