@@ -288,6 +288,44 @@ body {
   width: 100%;
 }
 
+/* ── Rack Cartoon / Mode Toggle ─────────────────────────────────────────────── */
+.rack-cartoon {
+  padding: 6px 6px 2px;
+  background: #0f0f1c;
+}
+
+.rack-mode-bar {
+  display: flex;
+  border-top: 1px solid #2a2a4a;
+}
+
+.rack-mode-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-right: 1px solid #2a2a4a;
+  color: #555;
+  font-size: 0.68rem;
+  padding: 4px 0;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+  letter-spacing: 0.03em;
+}
+
+.rack-mode-btn:last-child {
+  border-right: none;
+}
+
+.rack-mode-btn:hover {
+  color: #aaa;
+  background: #1a1a2e;
+}
+
+.rack-mode-btn--active {
+  font-weight: 600;
+  background: #13132a;
+}
+
 /* ── Dashboard ──────────────────────────────────────────────────────────────── */
 .dashboard {
   background: #13132a;
