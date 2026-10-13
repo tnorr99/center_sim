@@ -329,7 +329,10 @@ export function DataCenterFloor() {
     <main ref={setNodeRef} className={`floor ${isOver ? 'floor--over' : ''}`}>
       <h2 className="floor-title">
         Data Center Floor
-        <span className="floor-count">{racks.length} rack{racks.length !== 1 ? 's' : ''} deployed</span>
+        <span className="floor-count">
+          {racks.length} / {constants.simulation.maxRacks} racks deployed
+          {racks.length >= constants.simulation.maxRacks && ' · floor full'}
+        </span>
         <button
           className={`view-toggle ${view === 'exterior' ? 'view-toggle--active' : ''}`}
           onClick={() => setView(v => v === 'interior' ? 'exterior' : 'interior')}

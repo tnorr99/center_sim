@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateRackPUE, calculateFacilityMetrics, Rack } from '../logic/thermoCalc';
+import { calculateRackPUE, calculateFacilityMetrics, calculateWaterMetrics, Rack } from '../logic/thermoCalc';
 
 // ── Climate constants from McLean, VA (NOAA) ─────────────────────────────────
 const SUMMER_PEAK_C = 30.5;
@@ -187,5 +187,31 @@ describe('calculateFacilityMetrics', () => {
       const liquidSeasonalDelta = liquidSummerPower - liquidWinterPower;
       expect(cracSeasonalDelta).toBeGreaterThan(liquidSeasonalDelta * 5);
     });
+  });
+});
+
+// ── calculateWaterMetrics ────────────────────────────────────────────────────
+describe('calculateWaterMetrics', () => {
+  const rack = (id: string, coolingType: Rack['coolingType']): Rack => ({ id, loadMW: RACK_LOAD_MW, coolingType });
+
+  it('returns zeros for an empty facility', () => {
+    expect(calculateWaterMetrics([])).toEqual({ totalWaterLitersPerDay: 0, systemWUE: 0 });
+  });
+
+  it('single LIQUID rack: 120 kW × 0.90 L/kWh × 24 h', () => {
+    const { totalWaterLitersPerDay, systemWUE } = calculateWaterMetrics([rack('r1', 'LIQUID')]);
+    expect(totalWaterLitersPerDay).toBeCloseTo(120 * 0.9 * 24, 6); // 2,592 L/day
+    expect(systemWUE).toBeCloseTo(0.9, 10);
+  });
+
+  it('mixed fleet is load-weighted (Modern Co-location preset: 10 hot-aisle + 5 liquid)', () => {
+    const racks = [
+      ...Array.from({ length: 10 }, (_, i) => rack(`h${i}`, 'HOT_AISLE')),
+      ...Array.from({ length: 5 }, (_, i) => rack(`l${i}`, 'LIQUID')),
+    ];
+    const { totalWaterLitersPerDay, systemWUE } = calculateWaterMetrics(racks);
+    // (1,200 kW × 0.40 + 600 kW × 0.90) × 24 h = 24,480 L/day over 43,200 kWh
+    expect(totalWaterLitersPerDay).toBeCloseTo(24_480, 6);
+    expect(systemWUE).toBeCloseTo(24_480 / 43_200, 10);
   });
 });

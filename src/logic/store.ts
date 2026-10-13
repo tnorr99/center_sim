@@ -48,6 +48,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   metrics: ZERO_METRICS,
 
   addRack: (coolingType) => {
+    // The floor is sized for constants.simulation.maxRacks; ignore drops beyond it.
+    if (get().racks.length >= constants.simulation.maxRacks) return;
     const newRack: Rack = {
       id: `rack-${++rackCounter}`,
       loadMW: constants.simulation.defaultRackLoadMW,
