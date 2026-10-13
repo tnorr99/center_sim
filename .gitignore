@@ -1,0 +1,19 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local tool settings
+.claude/
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.*
+
+# OS / logs
+.DS_Store
+Thumbs.db
+*.log
