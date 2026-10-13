@@ -40,7 +40,7 @@ export const PRESETS: Preset[] = [
   {
     id: 'legacy-enterprise',
     label: 'Legacy Enterprise DC',
-    description: '10 CRAC racks — pre-2015 enterprise average (PUE ≈ 1.8–2.0)',
+    description: '10 CRAC racks — air-cooled legacy floor (PUE 1.45 at ≤15 °C, ~1.68 at summer peak)',
     citation: 'Uptime Institute Annual Survey; pre-2015 enterprise DC average',
     racks: makeRacks([{ coolingType: 'CRAC', count: 10 }]),
   },
