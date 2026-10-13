@@ -1,159 +1,196 @@
 # Data Center Thermodynamics Simulator
 
-An interactive, physics-based simulation of hyperscale data center energy dynamics modelled on the Loudoun County, Virginia corridor — the densest concentration of data center capacity on Earth.
+[![CI](https://github.com/tnorr99/center_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/tnorr99/center_sim/actions/workflows/ci.yml)
 
-Drag cooling modules onto a virtual data center floor, adjust ambient temperature across the McLean/Ashburn seasonal range, and watch PUE and heat rejection respond in real time.
+**Live demo: [tnorr99.github.io/center_sim](https://tnorr99.github.io/center_sim/)**
+
+This is an interactive model of hyperscale data center energy, water, and
+heat. It is based on the Loudoun County, Virginia corridor. You place
+NVIDIA GB200 NVL72 racks (120 kW each) on a floor under one of three
+cooling strategies and move the outside temperature across the McLean, VA
+seasonal range. Facility PUE, power, heat rejection, and water use
+recompute on every change.
+
+![Simulator: Modern Co-location preset at the 30.5 °C summer peak](docs/media/simulator.png)
+
+![Exterior view: power and water in, heat out, and the modeled heat-island footprint](docs/media/exterior-view.png)
 
 ---
 
 ## Features
 
-- **Drag-and-drop rack deployment** — place NVIDIA GB200 NVL72 racks (120 kW each) using three cooling strategies
-- **Live thermodynamic metrics** — System PUE, total facility power, and heat rejected update on every change
-- **Seasonal temperature simulation** — slider from McLean VA winter trough (−2.2 °C) to summer peak (30.5 °C)
-- **D3.js visualisations** — arc gauges for PUE, heat, and temperature; rack-level PUE heatmap
-- **Rich hover tooltips** — every metric includes a contextual explanation of the formula and real-world significance
-- **°C / °F toggle** — switch temperature display units at any time; all math runs internally in Celsius
-- **Per-rack cooling swap** — change any deployed rack's cooling type via dropdown to compare strategies live
+- **Drag-and-drop racks.** Three cooling types: CRAC (air), hot-aisle
+  containment, and direct-to-chip liquid. Each rack's cooling type can be
+  changed from a dropdown, and the floor holds up to 50 racks.
+- **Presets.** Hyperscaler AI campus, modern co-location, legacy
+  enterprise, and financial / HFT.
+- **Live metrics.** System PUE, IT load, facility power, heat rejected,
+  water use (L/day), and WUE.
+- **Seasonal temperature.** A slider covers the McLean, VA range, from the
+  winter trough (−2.2 °C) to the summer peak (30.5 °C), with a °C / °F
+  toggle. All math runs in °C.
+- **D3 visualizations.** Arc gauges for PUE, heat, and temperature, a
+  per-rack PUE heat map, and per-rack airflow and coolant diagrams.
+- **Exterior view.** Shows power and water inflow, the heat plume, and a
+  local land-surface-temperature (LST) estimate based on the data heat
+  island effect (see [Heat island](#heat-island-exterior-view)).
+- **Explanatory tooltips.** Each metric's tooltip explains its formula
+  and what it means in practice.
 
 ---
 
-## Tech Stack
+## Model
 
-| Layer | Library |
-|-------|---------|
-| UI framework | React 18 + TypeScript |
-| Build tool | Vite |
-| Drag and drop | dnd-kit |
-| Data visualisation | D3.js v7 |
-| Global state | Zustand |
-| Unit tests | Vitest |
+All of the physics is in `src/logic/thermoCalc.ts`. The functions are pure
+and have unit tests.
 
----
+### PUE per rack
 
-## Getting Started
-
-**Prerequisites:** Node.js ≥ 18
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-# → http://localhost:5173
-
-# Run unit tests (23 tests)
-npm test
-
-# Production build
-npm run build
+```
+PUE(coolingType, T) = baseline + penalty × max(0, T − idealTemp)
 ```
 
+| Cooling type | Baseline PUE | Ideal temp | Penalty / °C above ideal | PUE at 30.5 °C |
+|---|---|---|---|---|
+| CRAC (air) | 1.45 | 15 °C | +0.015 | 1.6825 |
+| Hot-aisle containment | 1.25 | 22 °C | +0.010 | 1.335 |
+| Direct-to-chip liquid | 1.05 | 30 °C | +0.002 | 1.051 |
+
+### Facility metrics
+
+```
+totalITLoadMW        = Σ rack.loadMW
+totalFacilityPowerMW = Σ rack.loadMW × PUE(rack.coolingType, T)
+systemPUE            = totalFacilityPowerMW / totalITLoadMW
+heatRejectedMW       = totalFacilityPowerMW     (essentially all power drawn leaves as heat)
+```
+
+### Water (WUE)
+
+Water use is load-weighted by cooling type and does not depend on outside
+temperature.
+
+| Cooling type | WUE (L per kWh of IT load) |
+|---|---|
+| CRAC | 0.20 |
+| Hot-aisle containment | 0.40 |
+| Direct-to-chip liquid | 0.90 (closed-loop DLC plus evaporative heat-rejection make-up) |
+
+```
+waterLitersPerDay = Σ rack.loadMW × 1000 × WUE(coolingType) × 24
+systemWUE         = waterLitersPerDay / (totalITLoadMW × 1000 × 24)
+```
+
+Liquid cooling lowers PUE but raises water use, and the simulator shows
+both sides of that trade-off.
+
+### Heat island (exterior view)
+
+The exterior view scales the average land-surface-temperature increase
+reported by Marinoni et al. (2026), +2.07 °C, linearly by heat rejected
+relative to a 100 MW campus:
+
+```
+ΔLST ≈ min(9.1, heatRejectedMW / 100 × 2.07) °C
+```
+
+The rings show the paper's reported spatial extent (up to about 10 km).
+This is an illustrative first-order scaling, not a spatial climate model.
+
+### Worked example
+
+The Modern Co-location preset is 10 hot-aisle racks and 5 liquid racks,
+for 1.80 MW of IT load.
+
+| | 14 °C (annual average) | 30.5 °C (summer peak) |
+|---|---|---|
+| Facility power / heat rejected | 2.13 MW | 2.23 MW |
+| System PUE | 1.18 | 1.24 |
+| Water | 24,480 L/day (WUE 0.57) | 24,480 L/day |
+
+These figures are covered by unit tests in `src/tests/`.
+
 ---
 
-## Project Structure
+## Getting started
+
+Requires Node.js 20 or later.
+
+```bash
+npm install
+npm run dev       # http://localhost:5173
+npm test          # 32 unit tests (Vitest)
+npm run build     # typecheck + production build to dist/
+```
+
+CI (`.github/workflows/ci.yml`) runs on every push and pull request. It
+typechecks, runs the tests, runs `npm audit`, and builds the app. Each
+push to `main` is deployed to GitHub Pages.
+
+---
+
+## Project structure
 
 ```
 src/
 ├── data/
-│   └── constants.json        # Climate, hardware, and cooling profile constants
+│   ├── constants.json        # Climate, hardware, cooling-profile, and simulation constants
+│   └── presets.ts            # Quick-load facility configurations
 ├── logic/
-│   ├── thermoCalc.ts         # Thermodynamic engine (PUE curves, heat rejection math)
-│   ├── store.ts              # Zustand global state store
-│   └── tempUtils.ts          # °C ↔ °F conversion helpers
+│   ├── thermoCalc.ts         # PUE, facility, and water (WUE) model
+│   ├── store.ts              # Zustand store: racks, temperature, derived metrics
+│   └── tempUtils.ts          # °C ↔ °F helpers
 ├── components/
-│   ├── HomePage.tsx          # Landing page with application guide
-│   ├── CoolingPalette.tsx    # Draggable cooling module palette
-│   ├── DataCenterFloor.tsx   # Droppable rack floor grid
-│   ├── MetricsDashboard.tsx  # D3 gauges, temperature slider, heatmap
-│   └── Tooltip.tsx           # Shared hover tooltip component
-├── App.tsx                   # Root layout, DndContext, homepage gate
-├── App.css                   # All styles
-└── main.tsx                  # React DOM entry point
+│   ├── HomePage.tsx          # Landing page and guide
+│   ├── CoolingPalette.tsx    # Draggable cooling modules
+│   ├── DataCenterFloor.tsx   # Droppable floor, rack diagrams, interior/exterior toggle
+│   ├── ExteriorView.tsx      # Isometric exterior: power/water in, heat plume, heat-island rings
+│   ├── MetricsDashboard.tsx  # D3 gauges, temperature slider, rack heat map
+│   ├── PresetBar.tsx         # Preset buttons
+│   └── Tooltip.tsx           # Shared hover tooltip
+├── tests/
+│   ├── thermoCalc.test.ts    # PUE, facility, and water model
+│   └── store.test.ts         # Store actions, rack limit, metric recomputation
+├── App.tsx                   # Layout, DndContext, home-page gate
+├── App.css
+└── main.tsx
+docs/
+├── BUILD_PROMPT.md           # The agent brief the first version was built from
+└── media/                    # README screenshots
 ```
 
 ---
 
-## Thermodynamic Model
+## Data sources
 
-### PUE Formula
-
-```
-PUE(coolingType, temp) = baseline + penaltyK × max(0, temp − idealTemp)
-```
-
-| Cooling Type | Baseline PUE | Ideal Temp | Penalty / °C above ideal |
-|---|---|---|---|
-| CRAC (air) | 1.45 | 15 °C | +0.015 |
-| Hot-Aisle Containment | 1.25 | 22 °C | +0.010 |
-| Direct-to-Chip Liquid | 1.05 | 30 °C | +0.002 |
-
-### Heat Rejection Identity
-
-Per the Second Law of Thermodynamics, virtually all electrical power drawn by the facility is ultimately rejected as thermal energy:
-
-```
-Heat Rejected (MW) ≈ Total Facility Power (MW) = IT Load × System PUE
-```
-
-### Facility Metrics
-
-```
-totalITLoadMW       = Σ rack.loadMW
-totalFacilityPowerMW = Σ (rack.loadMW × PUE(rack.coolingType, outsideTempC))
-systemPUE           = totalFacilityPowerMW / totalITLoadMW
-heatRejectedMW      = totalFacilityPowerMW
-```
+1. **NVIDIA GB200 NVL72.** Blackwell architecture and GB200 NVL72
+   technical specifications (2024/2025). Source of the 120 kW per-rack
+   power and heat figures.
+2. **PUE baselines.** Uptime Institute Annual Global Data Center Survey
+   (2023/2024).
+3. **Temperature thresholds.** ASHRAE TC 9.9 Environmental Guidelines for
+   Datacom Equipment.
+4. **WUE.** The Green Grid WUE guidelines and report (2022), Uptime
+   Institute WUE benchmarks (2023), and LBNL (2023).
+5. **Climate.** NOAA historical climatology, McLean, VA station, used as a
+   proxy for Ashburn / Loudoun County.
+6. **Heat island.** A. Marinoni et al., "The data heat island effect:
+   quantifying the impact of AI data centers in a warming world" (2026),
+   [arXiv:2603.20897](https://arxiv.org/abs/2603.20897).
 
 ---
 
-## Hardware Baseline
+## How it was built
 
-**NVIDIA GB200 NVL72**
-- 72 × Blackwell B200 GPUs per chassis
-- 120 kW continuous power draw
-- 120 kW heat output
-- Direct-to-chip liquid cooling mandatory at this density
-- Source: NVIDIA Blackwell Architecture & GB200 NVL72 Technical Specifications (2024/2025)
+The first version was built by directing AI coding agents through a
+staged, five-role brief, kept in
+[`docs/BUILD_PROMPT.md`](docs/BUILD_PROMPT.md). In that brief the
+thermodynamic formulas were supplied as a fixed reference that the agents
+were told not to alter. Later work extended the model and the interface:
+the WUE model, exterior view, presets, and rack diagrams. It also fixed an
+inverted temperature-gauge color scale and enforced the floor's rack
+limit, and added store tests.
 
----
+## License
 
-## Climate Baseline
-
-Location: McLean, VA (NOAA proxy for Ashburn / Loudoun County)
-
-| Season | Temperature |
-|--------|-------------|
-| Winter trough | −2.2 °C (28 °F) |
-| Annual average | 14.0 °C (57 °F) |
-| Summer peak | 30.5 °C (87 °F) |
-
-Source: NOAA Historical Climatology Data
-
----
-
-## Data Sources & Citations
-
-1. **NVIDIA GB200 NVL72** — Blackwell Architecture Technical Specifications (2024/2025)
-2. **PUE baselines** — Uptime Institute Annual Global Data Center Survey (2023/2024)
-3. **Temperature thresholds** — ASHRAE TC 9.9 Environmental Guidelines for Datacom Equipment
-4. **Climate data** — NOAA Historical Climatology, McLean VA station
-5. **Facility baseline** — Loudoun County, VA data center campus density modelling
-
----
-
-## Running Tests
-
-```bash
-npm test
-```
-
-The test suite (`src/tests/thermoCalc.test.ts`) covers 23 cases including:
-
-- PUE baseline values at ideal temperatures
-- CRAC vs. Liquid cooling degradation at McLean summer peak (30.5 °C)
-- Seasonal delta comparison (winter vs. summer) across all cooling types
-- Facility-level weighted PUE for mixed fleets
-- Thermodynamic identity: heat rejected = facility power
-- Edge cases: below-ideal temperatures, empty rack arrays
+[MIT](LICENSE)
