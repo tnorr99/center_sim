@@ -179,7 +179,14 @@ export function MetricsDashboard() {
             max={displayMax}
             label="Outside Temp"
             unit={tempUnit}
-            colorScale={(t) => tempColor(35 - t * 40)}
+            // t is the gauge fraction (0 = winter trough, 1 = summer peak). Map it back
+            // to °C on that range so hot reads red and cold reads blue in either unit.
+            colorScale={(t) =>
+              tempColor(
+                constants.climate.winterTroughC +
+                  t * (constants.climate.summerPeakC - constants.climate.winterTroughC)
+              )
+            }
           />
         </Tooltip>
       </div>
